@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		22BB4B0620BC8EB4009F3295 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 22BB4B0520BC8EB4009F3295 /* main.c */; };
+		22BB4B0E20BC8EDE009F3295 /* chip8.c in Sources */ = {isa = PBXBuildFile; fileRef = 22BB4B0C20BC8EDE009F3295 /* chip8.c */; };
+		22BB4B1120BC8F02009F3295 /* graphics8.c in Sources */ = {isa = PBXBuildFile; fileRef = 22BB4B0F20BC8F02009F3295 /* graphics8.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,10 @@
 /* Begin PBXFileReference section */
 		22BB4B0220BC8EB4009F3295 /* chip8 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = chip8; sourceTree = BUILT_PRODUCTS_DIR; };
 		22BB4B0520BC8EB4009F3295 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		22BB4B0C20BC8EDE009F3295 /* chip8.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = chip8.c; sourceTree = "<group>"; };
+		22BB4B0D20BC8EDE009F3295 /* chip8.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = chip8.h; sourceTree = "<group>"; };
+		22BB4B0F20BC8F02009F3295 /* graphics8.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphics8.c; sourceTree = "<group>"; };
+		22BB4B1020BC8F02009F3295 /* graphics8.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphics8.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +63,10 @@
 		22BB4B0420BC8EB4009F3295 /* chip8 */ = {
 			isa = PBXGroup;
 			children = (
+				22BB4B0F20BC8F02009F3295 /* graphics8.c */,
+				22BB4B1020BC8F02009F3295 /* graphics8.h */,
+				22BB4B0D20BC8EDE009F3295 /* chip8.h */,
+				22BB4B0C20BC8EDE009F3295 /* chip8.c */,
 				22BB4B0520BC8EB4009F3295 /* main.c */,
 			);
 			path = chip8;
@@ -119,6 +129,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22BB4B0E20BC8EDE009F3295 /* chip8.c in Sources */,
+				22BB4B1120BC8F02009F3295 /* graphics8.c in Sources */,
 				22BB4B0620BC8EB4009F3295 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
