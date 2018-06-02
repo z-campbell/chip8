@@ -22,6 +22,12 @@
 #define MAX_GAME_ADDR 0x0EA0
 #define DEFAULT_GAME "pong.ROM"
 
+enum {
+    STACK_UNDERFLOW,
+    STACK_OVERFLOW,
+    DRAW_FLAG,
+
+};
 
 typedef struct Chip8 {
 
@@ -39,6 +45,8 @@ typedef struct Chip8 {
 
     unsigned short status_flag;
     double cycle_counter;
+    unsigned short current_opcode;
+
 
 } Chip8;
 

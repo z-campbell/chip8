@@ -1,149 +1,353 @@
 
 #include "opcodes.h"
 #include "opcode_functions.h"
-
-opcode Call = {
+#include "opcodes.h"
+#include "chip8.h"
+const opcode Call = {
         .code = 0x000,
-        .function = &oCall,
+        .function = &opCall,
 };
 
-opcode Display = {
+const opcode DisplayClear = {
         .code = 0x00E0,
-        .function = &oDisplay,
+        .function = &opDisplayClear,
 };
 
-opcode Return = {
+const opcode Return = {
         .code = 0x00EE,
-        .function = &oReturn,
+        .function = &opReturn,
 };
 
-opcode Goto = {
+const opcode Goto = {
         .code = 0x1000,
-        .function = &oGoto,
+        .function = &opGoto,
 };
 
-opcode CallSubRoutine = {
+const opcode CallSubRoutine = {
         .code = 0x2000,
-        .function = &oCallSubRoutine,
+        .function = &opCallSubRoutine,
 };
 
 // Conditional Subroutines
 
-opcode SkipIfEqN = {
+const opcode SkipIfEqN = {
         .code = 0x3000,
-        .function = &oSkipIfEqN,
+        .function = &opSkipIfEqN,
 };
 
-opcode SkipIfnEqN = {
+const opcode SkipIfnEqN = {
         .code = 0x4000,
-        .function = &oSkipIfnEqN,
+        .function = &opSkipIfnEqN,
 };
 
-opcode SkipIfEq = {
+const opcode SkipIfEq = {
         .code = 0x5000,
-        .function = &oSkipIfEq,
+        .function = &opSkipIfEq,
 };
 
 // Assignment opcodes
 
-opcode SetRegister = {
+const opcode SetRegister = {
         .code = 0x6000,
-        .function = &oSetRegister,
+        .function = &opSetRegister,
 };
 
-opcode IncrementRegister = {
+const opcode IncrementRegister = {
         .code = 0x7000,
-        .function = &oIncrementRegister,
+        .function = &opIncrementRegister,
 };
 
-opcode AssignRegister = {
+const opcode AssignRegister = {
         .code = 0x8000,
-        .function = &oAssignRegister,
+        .function = &opAssignRegister,
 };
 
 // Bitwise Operations
 
-opcode BitOr = {
+const opcode BitOr = {
         .code = 0x8001,
-        .function = &oBitOr,
+        .function = &opBitOr,
 };
 
-opcode BitAnd = {
+const opcode BitAnd = {
         .code = 0x8002,
-        .function = &oBitAnd,
+        .function = &opBitAnd,
 };
 
-opcode BitXor = {
+const opcode BitXor = {
         .code = 0x8003,
-        .function = &oBitXor,
+        .function = &opBitXor,
 };
 
 // Arithmetic Operators
 
-opcode AddXY = {
+const opcode AddXY = {
         .code = 0x8004,
-        .function = &oAddXY,
+        .function = &opAddXY,
 };
 //
-opcode DecrimentXY = {
+const opcode DecrimentXY = {
         .code = 0x8005,
-        .function = &oDecrimentXY,
+        .function = &opDecrimentXY,
 };
 
 // Shifts right one bit, sets VF to LSB of Vy
-opcode BitShiftRight = {
+const opcode BitShiftRight = {
         .code = 0x8006,
-        .function = &oBitshiftRight,
+        .function = &opBitShiftRight,
 };
 
 // Vx = Vy - Vx
-opcode SubXY = {
+const opcode SubXY = {
         .code = 0x8007,
-        .function = &oSubXY
+        .function = &opSubXY
 };
 
-opcode BitShiftLeft = {
+const opcode BitShiftLeft = {
         .code = 0x800E,
-        .function = &oBitShiftLeft,
+        .function = &opBitShiftLeft,
 };
 
-opcode SkipIfEqXY = {
+const opcode SkipIfEqXY = {
         .code = 0x9000,
-        .function = &oSkipIfEqXY,
+        .function = &opSkipIfEqXY,
 };
 
-opcode SetAddress = {
+const opcode SetAddress = {
         .code = 0xA000,
-        .function = &oSetAddress,
+        .function = &opSetAddress,
 };
 // Sets PC = V0 + NNN
-opcode SetPCV0 = {
+const opcode SetPCV0 = {
         .code = 0xB000,
-        .function = &oSetPCV0,
+        .function = &opSetPCV0,
 };
 
 // Vx = Rand(0:255) & NN
-opcode RandAnd = {
+const opcode RandAnd = {
         .code = 0xC000,
-        .function = &oRandAnd,
+        .function = &opRandAnd,
 };
 
 // Display, draws a sprite at coordinate (Vx, Vy) that is 8 pixels wide and a height
 // of N. Each row is bit encoded starting at address I. VF is set to 1 if any screen
 // pixels are flipped from set to unset. And remains 0 otherwise.
-opcode Draw = {
+const opcode Draw = {
         .code = 0xD000,
-        .function = &oDraw,
+        .function = &opDraw,
 };
 
 // Skips next instruction if Vx Key has been pressed.
-opcode SkipIfPressed = {
+const opcode SkipIfPressed = {
         .code = 0xE09E,
-        .function = &oSkipIfPressed,
+        .function = &opSkipIfPressed,
+};
+
+// Skips next instruction if Vx Key is not pressed.
+const opcode SkipIfnPressed = {
+        .code = 0xE0A1,
+        .function = &opSkipIfnPressed,
+};
+
+// Sets Vx to value of Delay Timer
+const opcode SetVTimer = {
+        .code = 0xF007,
+        .function = &opSetVTimer,
+};
+
+// Waits for key then stores in Vx
+const opcode WaitForKey = {
+        .code = 0xF00A,
+        .function = &opWaitForKey,
+};
+// Sets Delay Timer to Vx
+const opcode SetDelayTimer = {
+        .code = 0xF015,
+        .function = &opSetDelayTimer,
+};
+
+const opcode SetSoundTimer = {
+        .code = 0xF018,
+        .function = &opSetSoundTimer,
+};
+
+// Adds Vx to I
+const opcode AddIndex = {
+        .code = 0xF01E,
+        .function = &opAddIndex,
+};
+
+// Sets I to loction of sprite for character in Vx.
+const opcode SetIndexFont = {
+        .code = 0xF029,
+        .function = &opSetIndexFont,
+};
+
+const opcode StoreBinary = {
+        .code = 0xF033,
+        .function = &opStoreBinary
+};
+// Stores V0 to Vx including Vx to Memory I
+const opcode MemDump = {
+        .code = 0xF055,
+        .function = &opMemDump,
+};
+// Loads V0 to Vx starting at I including Vx
+const opcode MemLoad = {
+        .code = 0xF065,
+        .function = &opMemLoad,
+};
+
+const opcode BadOpCode = {
+        .code = 0xFFFF,
+        .function = &opBadOpCode,
 };
 
 
 
+void opBadOpCode ( void ) {
+
+}
+
+void opCall ( Chip8 *chip8 ) {
+
+}
+
+void opDisplayClear ( Chip8 *chip8 )
+{
+
+}
+// Returns from a subroutine
+void opReturn ( Chip8 *chip8 ) {
+    if (chip8->SP > 0) {
+        chip8->PC = chip8->stack[SP - 1];
+        chip8->SP--;
+    }
+    else {
+        chip8->status_flag |= STACKUNDERFLOW;
+    }
+}
+
+void opGoto ( Chip8 *chip8 ) {
+    unsigned short address = chip8->current_opcode & 0x0FFF;
+    chip8->PC = address & 0x0FFF;
+}
+
+void opCallSubRoutine ( Chip8 *chip8 ) {
+    if ( SP < STACK_SIZE ) {
+        chip8->stack[SP] = (chip8->PC & 0x0FFF);
+        chip8->SP++;
+    }
+    chip8->PC = (chip8->current_opcode & 0x0FFF);
+}
+
+void opSkipIfEqN ( Chip8 *chip8 ){
+    if (chip8->V[chip8->current_opcode & 0x0F00] == (chip8->current_opcode & 0x0FF0) ) {
+        chip8->PC+=2;
+    }
+}
+
+void opSkipIfnEqN ( Chip8 *chip8 ) {
+    if (chip8->V[chip8->current_opcode & 0x0F00] != (chip8->current_opcode & 0x0FF0) ) {
+        chip8->PC+=2;
+    }
+
+}
+
+void opSkipIfEq ( Chip8 *chip8 ) {
+    unsigned short x_index, y_index;
+    x_index = (chip8->current_opcode & 0x0F00);
+    y_index = (chip8->current_opcode & 0x00F0);
+
+    if (chip8->V[x_index] == chip8->V[y_index]) {
+        chip8->PC+=2;
+    }
+}
+
+void opSetRegister ( Chip8 *chip8 ) {
+
+    unsigned char register_value = (chip8->current_opcode & 0x00FF);
+    chip8->V[chip8->current_opcode & 0x0F00] = register_value & 0x00FF;
+}
+
+void opIncrementRegister ( Chip8 *chip8 ) {
+    chip8->V[chip8->current_opcode & 0x0F00] += (chip8->current_opcode & 0x00FF);
+}
+
+void opAssignRegister ( Chip8 *chip8 ) {
+    chip8->V[(chip8->current_opcode & 0x0F00)] = chip8->V[(chip8->current_opcode & 0x00F0)];
+}
+
+void opBitOr (Chip8 *chip8) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    chip8->V[chip8->current_opcode&0x0F00] = (vx | vy) & 0xFF;
+
+}
+
+void opBitAnd (Chip8 *chip8) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    chip8->V[chip8->current_opcode&0x0F00] = (vx & vy) & 0xFF;
+
+}
+
+void opBitXor (Chip8 *chip8) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    chip8->V[chip8->current_opcode&0x0F00] = (vx ^ vy) & 0xFF;
+
+}
+
+void opAddXY ( Chip8 *chip8 ) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    if ((vx + vy) > 0xFF){
+        chip8->V[0xF] = 1;
+    }
+    chip8->V[chip8->current_opcode&0x0F00] = (vx + vy) & 0xFF;
+
+}
+
+void opDecrimentXY ( Chip8 *chip8 ) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    if ((vx - vy) < 1){
+        chip8->V[0xF] = 1;
+        chip8->V[chip8->current_opcode&0x0F00] = -(vx - vy) & 0xFF;
+        return;
+
+    }
+    chip8->V[chip8->current_opcode&0x0F00] = (vx - vy) & 0xFF;
+
+}
+
+void opBitShiftRight (Chip8 *chip8) {
+    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] >> 1) & 0xFF;
+}
+
+void opSubXY (Chip8 *chip8) {
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+
+    if ((vy - vx) < 1){
+        chip8->V[0xF] = 1;
+        chip8->V[chip8->current_opcode&0x0F00] = -(vy - vx) & 0xFF;
+        return;
+
+    }
+    chip8->V[chip8->current_opcode&0x0F00] = (vy - vx) & 0xFF;
+
+}
+
+void opBitShiftLeft (Chip8 *chip8) {
+    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] >> 1) & 0xFF;
+}
 
 
 
@@ -152,52 +356,16 @@ opcode SkipIfPressed = {
 
 
 
-opcode CHIP8_OPCODES[MAX_OPCODES] = {
-        Call,
-        Display,
+const opcode CHIP8_OPCODES[MAX_OPCODES] = {
+
+        Call, DisplayClear, Return, Goto, CallSubRoutine, SkipIfEqN,
+        SkipIfnEqN, SkipIfEq, SetRegister, IncrementRegister, AssignRegister,
+        BitOr, BitAnd, BitXor, AddXY, DecrimentXY, BitShiftRight, SubXY,
+        BitShiftLeft, SkipIfEqXY, SetAddress, SetPCV0, RandAnd, Draw, SkipIfPressed,
+        SkipIfnPressed, SetVTimer, WaitForKey, SetDelayTimer, SetSoundTimer, AddIndex,
+        SetIndexFont, StoreBinary, MemDump, MemLoad, BadOpCode,
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

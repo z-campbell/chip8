@@ -9,7 +9,7 @@
 #include "chip8.h"
 #include "opcodes.h"
 
-clock_t emu_start = clock()
+clock_t emu_start = clock();
 
 
 void initializeChip8( Chip8 *chip8, FILE *game ) {
@@ -26,7 +26,7 @@ void initializeChip8( Chip8 *chip8, FILE *game ) {
     int i;
 
     // Clear memory
-    for (i = 0, i < MEMORY_SIZE; i++) {
+    for (i = 0; i < MEMORY_SIZE; i++) {
         chip8->memory[i] = 0;
     }
 
@@ -80,6 +80,7 @@ void emulateCycle (Chip8 *chip8) {
     }
 
     executeOpCode(function, opcode);
+    chip8->PC += 2;
     current = clock();
 
     if (current - emu_start > 1/60) {
