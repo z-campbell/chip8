@@ -1,4 +1,5 @@
-
+#include <stdlib.h>
+#include <time.h>
 #include "opcodes.h"
 #include "opcode_functions.h"
 #include "opcodes.h"
@@ -227,12 +228,19 @@ void opReturn ( Chip8 *chip8 ) {
         chip8->status_flag |= STACKUNDERFLOW;
     }
 }
-
+/*
+ * 0x1NNN
+ * Jumps to address NNN
+ */
 void opGoto ( Chip8 *chip8 ) {
-    unsigned short address = chip8->current_opcode & 0x0FFF;
+    unsigned short address = (chip8->current_opcode & 0x0FFF);
     chip8->PC = address & 0x0FFF;
 }
 
+/*
+ * 0x2NNN
+ * Calls Subroutine at NNN
+ */
 void opCallSubRoutine ( Chip8 *chip8 ) {
     if ( SP < STACK_SIZE ) {
         chip8->stack[SP] = (chip8->PC & 0x0FFF);
@@ -241,96 +249,163 @@ void opCallSubRoutine ( Chip8 *chip8 ) {
     chip8->PC = (chip8->current_opcode & 0x0FFF);
 }
 
+/*
+ * 0x3XNN
+ * Skips next instruction if V[x] == NN
+ */
 void opSkipIfEqN ( Chip8 *chip8 ){
-    if (chip8->V[chip8->current_opcode & 0x0F00] == (chip8->current_opcode & 0x0FF0) ) {
+    if (chip8->V[(chip8->current_opcode & 0x0F00) >> 8] == (chip8->current_opcode & 0x00FF) ) {
         chip8->PC+=2;
     }
 }
-
+/*
+ * 0x4XNN
+ * Skip next instruction if V[x] != NN
+ */
 void opSkipIfnEqN ( Chip8 *chip8 ) {
-    if (chip8->V[chip8->current_opcode & 0x0F00] != (chip8->current_opcode & 0x0FF0) ) {
+    if (chip8->V[(chip8->current_opcode & 0x0F00) >> 8] != (chip8->current_opcode & 0x00FF) ) {
         chip8->PC+=2;
     }
-
 }
 
+/*
+ * 0x5XY0
+ * Skips next instruction if Vx == Vy
+ */
 void opSkipIfEq ( Chip8 *chip8 ) {
     unsigned short x_index, y_index;
-    x_index = (chip8->current_opcode & 0x0F00);
-    y_index = (chip8->current_opcode & 0x00F0);
+    x_index = (chip8->current_opcode & 0x0F00)>>8;
+    y_index = (chip8->current_opcode & 0x00F0)>>4;
 
     if (chip8->V[x_index] == chip8->V[y_index]) {
         chip8->PC+=2;
     }
 }
-
+/*
+ * 0x6XNN
+ * Sets Vx = NN
+ */
 void opSetRegister ( Chip8 *chip8 ) {
 
     unsigned char register_value = (chip8->current_opcode & 0x00FF);
-    chip8->V[chip8->current_opcode & 0x0F00] = register_value & 0x00FF;
+    chip8->V[(chip8->current_opcode & 0x0F00)>>8] = register_value & 0x00FF;
 }
 
+/*
+ * 0x7XNN
+ * Increments Vx += NN
+ */
 void opIncrementRegister ( Chip8 *chip8 ) {
-    chip8->V[chip8->current_opcode & 0x0F00] += (chip8->current_opcode & 0x00FF);
+    chip8->V[(chip8->current_opcode & 0x0F00) >> 8] += (chip8->current_opcode & 0x00FF);
 }
 
+/******************************************************************************
+ *
+ * 0x8XY0
+ * Sets Vx = Vy
+ *
+ ******************************************************************************/
 void opAssignRegister ( Chip8 *chip8 ) {
-    chip8->V[(chip8->current_opcode & 0x0F00)] = chip8->V[(chip8->current_opcode & 0x00F0)];
+    chip8->V[(chip8->current_opcode & 0x0F00) >> 8] = chip8->V[(chip8->current_opcode & 0x00F0) >> 4];
 }
 
+/******************************************************************************
+ *
+ * 0x8XY1
+ * Sets Vx = Vx | Vy
+ *
+ ******************************************************************************/
 void opBitOr (Chip8 *chip8) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
-    chip8->V[chip8->current_opcode&0x0F00] = (vx | vy) & 0xFF;
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx | vy) & 0xFF;
 
 }
-
+/******************************************************************************
+ *
+ * 0x8XY2
+ * Sets Vx = Vx & Vy
+ *
+ ******************************************************************************/
 void opBitAnd (Chip8 *chip8) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
-    chip8->V[chip8->current_opcode&0x0F00] = (vx & vy) & 0xFF;
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx & vy) & 0xFF;
 
 }
-
+/******************************************************************************
+ *
+ * 0x8XY3
+ * Sets Vx = Vx ^ Vy
+ *
+ ******************************************************************************/
 void opBitXor (Chip8 *chip8) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
-    chip8->V[chip8->current_opcode&0x0F00] = (vx ^ vy) & 0xFF;
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx ^ vy) & 0xFF;
 
 }
 
+/******************************************************************************
+ *
+ * 0x8XY4
+ * Sets Vx += Vy, sets Vf if carry
+ *
+ ******************************************************************************/
 void opAddXY ( Chip8 *chip8 ) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
     if ((vx + vy) > 0xFF){
         chip8->V[0xF] = 1;
     }
-    chip8->V[chip8->current_opcode&0x0F00] = (vx + vy) & 0xFF;
+    else
+        chip8->V[0xf] = 0;
+
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx + vy) & 0xFF;
 
 }
 
+/******************************************************************************
+ *
+ * 0x8XY5
+ * Sets Vx -= Vy, sets Vf to 0 if borrow
+ *
+ ******************************************************************************/
 void opDecrimentXY ( Chip8 *chip8 ) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
     if ((vx - vy) < 1){
-        chip8->V[0xF] = 1;
-        chip8->V[chip8->current_opcode&0x0F00] = -(vx - vy) & 0xFF;
+        chip8->V[0xF] = 0;
+        chip8->V[(chip8->current_opcode&0x0F00)>>8] = -(vx - vy) & 0xFF;
         return;
 
     }
-    chip8->V[chip8->current_opcode&0x0F00] = (vx - vy) & 0xFF;
+    else
+        chip8->V[0xF] = 1;
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx - vy) & 0xFF;
 
 }
-
+/******************************************************************************
+ *
+ * 0x8XY6
+ * Sets Vx = Vy>>1, sets Vf to LSB of Vy
+ *
+ ******************************************************************************/
 void opBitShiftRight (Chip8 *chip8) {
-    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] >> 1) & 0xFF;
+    chip8->V[0xf] = (chip8->V[((chip8->current_opcode&0x00F0)>>4)] & 0x1);
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (chip8->V[(chip8->current_opcode&0x00F0)>>4] >> 1) & 0xFF;
 }
-
+/******************************************************************************
+ *
+ * 0x8XY7
+ * Sets Vx = Vy - Vx, sets Vf to 0 if borrow, 1 if none.
+ *
+ ******************************************************************************/
 void opSubXY (Chip8 *chip8) {
     unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
     unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
@@ -346,12 +421,67 @@ void opSubXY (Chip8 *chip8) {
 }
 
 void opBitShiftLeft (Chip8 *chip8) {
-    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] >> 1) & 0xFF;
+    chip8->V[0xf] = chip8->current_opcode & 0x01
+    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] << 1) & 0xFF;
 }
 
+void opSkipIfEqXY(Chip8 *chip8) {
+    if (chip8->V[(chip8->current_opcode & 0x0F00)] != chip8->V[chip8->current_opcode &0x00F0]) {
+        chip8->PC+=2;
+    }
+}
 
+void opSetAddress ( Chip8 *chip8 ) {
+    chip8->PC = (chip8->current_opcode & 0x0FFF);
+}
 
+/*
+ * PC = NNN + V0;
+ */
+void opSetPCV0 (Chip8 *chip8) {
+    chip8->PC = (chip8->current_opcode&0x0FFF) + chip8->V[0];
+}
+/*
+ * 0xCXNN
+ * V[X] = NN & rand(0:255)
+ */
+void opRandAnd ( Chip8 *chip8 ) {
+    srand(time(NULL));
+    int random_number = rand() & 0xff;
+    chip8->V[(chip8->current_opcode & 0x0F00)>>8] = (chip8->current_opcode & 0x00FF) & random_number;
+}
+/*
+ * 0xDXYN
+ * Draws a sprite at coordinate (Vx, Vy) that has a width of 8 pixels and a height of N pixels.
+ * Pixels are bit encoded starting at memory address I. I is not adjusted after operation and V[f]
+ * is set if a pixel is set from 1 to 0
+ */
+void opDraw ( Chip8 *chip8 ) {
+    unsigned char num_rows, bit_pixel, x, y;
+    num_rows = chip8->current_opcode & 0x000F;
+    bit_pixel = chip8->memory[chip8->I];
+    x = chip8->V[chip8->current_opcode & 0x0F00 >> 8];
+    y = chip8->V[chip8->current_opcode & 0x00F0 >> 4];
 
+    chip8->V[0xf] = 0;
+    for (int yline = 0; i < num_rows; i++) {
+        bit_pixel = chip8->memory[chip8->I + i];
+        for (int xline = 0; j < 8; j++) {
+            if((bit_pixel & (0x80 >> xline)) != 0){
+                if(chip8->gfx[(x+xline + ((y+yline)*64 ))] == 1 )
+                    chip8->V[0xf] = 1;
+
+                chip8->gfx[x + xline + ((y + yline)*64)] ^= 1;
+            }
+        }
+    chip8->draw_flag = 1;
+    }
+
+}
+
+void opSkipIfPressed (Chip8 *chip8) {
+
+}
 
 
 

@@ -1,6 +1,4 @@
-//
-// Created by Zach Campbell on 5/28/18.
-//
+
 
 #ifndef CHIP8_OPCODES_H
 #define CHIP8_OPCODES_H

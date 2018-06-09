@@ -9,7 +9,7 @@
 #include "chip8.h"
 #include "opcodes.h"
 
-clock_t emu_start = clock();
+const clock_t emu_start = clock();
 
 
 void initializeChip8( Chip8 *chip8, FILE *game ) {

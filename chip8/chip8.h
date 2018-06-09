@@ -46,6 +46,7 @@ typedef struct Chip8 {
     unsigned short status_flag;
     double cycle_counter;
     unsigned short current_opcode;
+    unsigned char draw_flag;
 
 
 } Chip8;
