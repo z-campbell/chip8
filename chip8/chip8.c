@@ -111,7 +111,9 @@ unsigned short fetchOpCode (Chip8 *chip8) {
 }
 
 void *decodeOpCode (unsigned short opcode) {
-
+    unsigned short i;
+    while(opcode != CHIP8_OPCODES[i].code && i < MAX_OPCODES) i++;
+    return CHIP8_OPCODES[i].function;
 }
 
 // Definitely needs to be tested but should work...
