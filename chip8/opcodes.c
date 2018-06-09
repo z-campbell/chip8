@@ -4,6 +4,7 @@
 #include "opcode_functions.h"
 #include "opcodes.h"
 #include "chip8.h"
+
 const opcode Call = {
         .code = 0x000,
         .function = &opCall,
@@ -184,9 +185,9 @@ const opcode SetIndexFont = {
         .function = &opSetIndexFont,
 };
 
-const opcode StoreBinary = {
+const opcode StoreBCD = {
         .code = 0xF033,
-        .function = &opStoreBinary
+        .function = &opStoreBCD
 };
 // Stores V0 to Vx including Vx to Memory I
 const opcode MemDump = {
@@ -205,73 +206,108 @@ const opcode BadOpCode = {
 };
 
 
+// ============================================================================
+// ============================================================================
+// OPCODE INSTRUCTIONS
+// ============================================================================
+// ============================================================================
 
-void opBadOpCode ( void ) {
 
-}
-
+/******************************************************************************
+ *
+ * 0x0NNN
+ * Calls and RCA 1802 program at address NNN. Not necessary for most ROMS
+ *
+ ******************************************************************************/
 void opCall ( Chip8 *chip8 ) {
-
+    return;
 }
 
+/******************************************************************************
+ *
+ * 0x0E0
+ * Clears screen
+ *
+ ******************************************************************************/
 void opDisplayClear ( Chip8 *chip8 )
 {
+    for (int i = 0; i < SCREEN_RESOLUTION; i++) {
+        chip8->gfx[i] = 0;
+    }
 
 }
-// Returns from a subroutine
+
+/******************************************************************************
+ *
+ * 0x0EE
+ * Returns from a subroutine
+ *
+ ******************************************************************************/
 void opReturn ( Chip8 *chip8 ) {
     if (chip8->SP > 0) {
-        chip8->PC = chip8->stack[SP - 1];
+        chip8->PC = chip8->stack[chip8->SP - 1];
         chip8->SP--;
     }
     else {
-        chip8->status_flag |= STACKUNDERFLOW;
+        chip8->status_flag |= STACK_UNDERFLOW;
     }
 }
-/*
+
+/******************************************************************************
+ *
  * 0x1NNN
- * Jumps to address NNN
- */
+ * Jumps to memory address NNN.
+ *
+ ******************************************************************************/
 void opGoto ( Chip8 *chip8 ) {
     unsigned short address = (chip8->current_opcode & 0x0FFF);
     chip8->PC = address & 0x0FFF;
 }
 
-/*
+/******************************************************************************
+ *
  * 0x2NNN
- * Calls Subroutine at NNN
- */
+ * Calls subroutine at NNN.
+ *
+ ******************************************************************************/
 void opCallSubRoutine ( Chip8 *chip8 ) {
-    if ( SP < STACK_SIZE ) {
-        chip8->stack[SP] = (chip8->PC & 0x0FFF);
+    if ( chip8->SP < STACK_SIZE ) {
+        chip8->stack[chip8->SP] = (chip8->PC & 0x0FFF);
         chip8->SP++;
     }
     chip8->PC = (chip8->current_opcode & 0x0FFF);
 }
 
-/*
+/******************************************************************************
+ *
  * 0x3XNN
- * Skips next instruction if V[x] == NN
- */
+ * Skips next instruction set if Vx == NN
+ *
+ ******************************************************************************/
 void opSkipIfEqN ( Chip8 *chip8 ){
     if (chip8->V[(chip8->current_opcode & 0x0F00) >> 8] == (chip8->current_opcode & 0x00FF) ) {
         chip8->PC+=2;
     }
 }
-/*
+
+/******************************************************************************
+ *
  * 0x4XNN
- * Skip next instruction if V[x] != NN
- */
+ * Skips next instruction if Vx != NN
+ *
+ ******************************************************************************/
 void opSkipIfnEqN ( Chip8 *chip8 ) {
     if (chip8->V[(chip8->current_opcode & 0x0F00) >> 8] != (chip8->current_opcode & 0x00FF) ) {
         chip8->PC+=2;
     }
 }
 
-/*
+/******************************************************************************
+ *
  * 0x5XY0
  * Skips next instruction if Vx == Vy
- */
+ *
+ ******************************************************************************/
 void opSkipIfEq ( Chip8 *chip8 ) {
     unsigned short x_index, y_index;
     x_index = (chip8->current_opcode & 0x0F00)>>8;
@@ -281,20 +317,25 @@ void opSkipIfEq ( Chip8 *chip8 ) {
         chip8->PC+=2;
     }
 }
-/*
+
+/******************************************************************************
+ *
  * 0x6XNN
  * Sets Vx = NN
- */
+ *
+ ******************************************************************************/
 void opSetRegister ( Chip8 *chip8 ) {
 
     unsigned char register_value = (chip8->current_opcode & 0x00FF);
     chip8->V[(chip8->current_opcode & 0x0F00)>>8] = register_value & 0x00FF;
 }
 
-/*
+/******************************************************************************
+ *
  * 0x7XNN
- * Increments Vx += NN
- */
+ * Sets Vx += NN
+ *
+ ******************************************************************************/
 void opIncrementRegister ( Chip8 *chip8 ) {
     chip8->V[(chip8->current_opcode & 0x0F00) >> 8] += (chip8->current_opcode & 0x00FF);
 }
@@ -322,6 +363,7 @@ void opBitOr (Chip8 *chip8) {
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx | vy) & 0xFF;
 
 }
+
 /******************************************************************************
  *
  * 0x8XY2
@@ -335,6 +377,7 @@ void opBitAnd (Chip8 *chip8) {
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx & vy) & 0xFF;
 
 }
+
 /******************************************************************************
  *
  * 0x8XY3
@@ -388,6 +431,7 @@ void opDecrimentXY ( Chip8 *chip8 ) {
     chip8->V[0xF] = 1;
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx - vy) & 0xFF;
 }
+
 /******************************************************************************
  *
  * 0x8XY6
@@ -398,6 +442,7 @@ void opBitShiftRight (Chip8 *chip8) {
     chip8->V[0xf] = (chip8->V[((chip8->current_opcode&0x00F0)>>4)] & 0x1);
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (chip8->V[(chip8->current_opcode&0x00F0)>>4] >> 1) & 0xFF;
 }
+
 /******************************************************************************
  *
  * 0x8XY7
@@ -416,6 +461,7 @@ void opSubXY (Chip8 *chip8) {
     chip8->V[0xf] = 1;
     chip8->V[chip8->current_opcode&0x0F00] = (vy - vx) & 0xFF;
 }
+
 /******************************************************************************
  *
  * 0x8XYE
@@ -426,6 +472,7 @@ void opBitShiftLeft (Chip8 *chip8) {
     chip8->V[0xf] = chip8->current_opcode & 0xF;
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (chip8->V[(chip8->current_opcode&0x00F0)>>4] << 1) & 0xFF;
 }
+
 /******************************************************************************
  *
  * 0x9Y0
@@ -437,6 +484,7 @@ void opSkipIfEqXY(Chip8 *chip8) {
         chip8->PC+=2;
     }
 }
+
 /******************************************************************************
  *
  * 0xANNN
@@ -456,6 +504,7 @@ void opSetAddress ( Chip8 *chip8 ) {
 void opSetPCV0 (Chip8 *chip8) {
     chip8->PC = (chip8->current_opcode&0x0FFF) + chip8->V[0];
 }
+
 /******************************************************************************
  *
  * 0xCXNN
@@ -468,6 +517,7 @@ void opRandAnd ( Chip8 *chip8 ) {
     int random_number = rand() & 0xff;
     chip8->V[(chip8->current_opcode & 0x0F00)>>8] = (chip8->current_opcode & 0x00FF) & random_number;
 }
+
 /******************************************************************************
  * 0xDXYN
  * Draws a sprite at coordinate (Vx, Vy) that has a width of 8 pixels and a height of N pixels.
@@ -482,9 +532,9 @@ void opDraw ( Chip8 *chip8 ) {
     y = chip8->V[chip8->current_opcode & 0x00F0 >> 4];
 
     chip8->V[0xf] = 0;
-    for (int yline = 0; i < num_rows; i++) {
-        bit_pixel = chip8->memory[chip8->I + i];
-        for (int xline = 0; j < 8; j++) {
+    for (int yline = 0; yline < num_rows; yline++) {
+        bit_pixel = chip8->memory[chip8->I + yline];
+        for (int xline = 0; xline < 8; xline++) {
             if((bit_pixel & (0x80 >> xline)) != 0){
                 if(chip8->gfx[(x+xline + ((y+yline)*64 ))] == 1 )
                     chip8->V[0xf] = 1;
@@ -542,6 +592,7 @@ void opWaitForKey(Chip8 *chip8) {
     unsigned char key_val = (chip8->current_opcode & 0x0F00) >> 8;
     while(chip8->key_state[key_val] != 1);
 }
+
 /******************************************************************************
  *
  * 0xFX15
@@ -552,6 +603,95 @@ void opSetDelayTimer (Chip8 *chip8) {
     chip8->delay_timer = (chip8->V[(chip8->current_opcode & 0x0F00)>>8]);
 }
 
+/******************************************************************************
+ *
+ * 0xFX18
+ * Sets sound timer to Vx
+ *
+ ******************************************************************************/
+void opSetSoundTimer(Chip8 *chip8) {
+    chip8->sound_timer = (chip8->V[(chip8->current_opcode & 0x0F00)>>8]);
+}
+
+/******************************************************************************
+ *
+ * 0xFX1E
+ * Increments I by Vx
+ *
+ ******************************************************************************/
+void opAddIndex (Chip8 *chip8) {
+    chip8->I += (chip8->V[(chip8->current_opcode&0x0F00)>>8]);
+}
+
+/******************************************************************************
+ *
+ * 0xFX29
+ * Sets I to the proper font character stored in Vx.
+ *
+ ******************************************************************************/
+void opSetIndexFont (Chip8 *chip8) {
+
+}
+
+/******************************************************************************
+ *
+ * 0xFX33
+ * Store the binary coded decimal representation of VX. With the 3 most
+ * significant digits stored in memory address I, middle digits in I+1 and
+ * last 3 digits in I+2
+ * memory[I] = Vx / 100
+ * memory[I+1] = (Vx / 10) % 10
+ * memory[I+2] = (Vx % 100) % 10
+ *
+ ******************************************************************************/
+void opStoreBCD(Chip8 *chip8) {
+    chip8->memory[chip8->I] = chip8->V[(chip8->current_opcode & 0x0F00)>>8] / 100;
+    chip8->memory[chip8->I + 1] = (chip8->V[(chip8->current_opcode & 0x0F00)>>8] / 10) % 10;
+    chip8->memory[chip8->I + 2] = (chip8->V[(chip8->current_opcode & 0x0F00)>>8] % 100) % 10;
+}
+
+/******************************************************************************
+ *
+ * 0xFX55
+ * Stores V0 through VX in memory address I, I is incremineted for each value written
+ *
+ ******************************************************************************/
+void opMemDump(Chip8 *chip8) {
+    int count = (chip8->current_opcode & 0x0F00) >> 8;
+    for (int i = 0; i <= count; i++) {
+        if(chip8->I < 0x1000) {
+            chip8->memory[chip8->I] = chip8->V[i];
+            chip8->I++;
+        }
+    }
+}
+
+/******************************************************************************
+ *
+ * 0xFX65
+ * Fills V0 to Vx including Vx starting at memory address I
+ *
+ ******************************************************************************/
+void opMemLoad(Chip8 *chip8) {
+    int count = (chip8->current_opcode & 0x0F00) >> 8;
+    for (int i = 0; i <= count; i++) {
+        if(chip8->I < 0x1000) {
+            chip8->V[i] = chip8->memory[chip8->I];
+            chip8->I++;
+        }
+    }
+}
+
+/******************************************************************************
+ *
+ * -------- NOT YET IMPLEMENTED ----------
+ * Bad opcode. If the opcode being decoded does not match any of the known
+ * opcodes, this function is called.
+ *
+ ******************************************************************************/
+void opBadOpCode (Chip8 *chip8) {
+    return;
+}
 
 const opcode CHIP8_OPCODES[MAX_OPCODES] = {
 
@@ -560,11 +700,7 @@ const opcode CHIP8_OPCODES[MAX_OPCODES] = {
         BitOr, BitAnd, BitXor, AddXY, DecrimentXY, BitShiftRight, SubXY,
         BitShiftLeft, SkipIfEqXY, SetAddress, SetPCV0, RandAnd, Draw, SkipIfPressed,
         SkipIfnPressed, SetVTimer, WaitForKey, SetDelayTimer, SetSoundTimer, AddIndex,
-        SetIndexFont, StoreBinary, MemDump, MemLoad, BadOpCode,
+        SetIndexFont, StoreBCD, MemDump, MemLoad, BadOpCode,
 
 };
-
-
-
-
 
