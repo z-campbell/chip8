@@ -42,7 +42,7 @@ typedef struct Chip8 {
     unsigned short sound_timer;         // Sound Time, 60Hz, will beep when underflow (1)
     unsigned char key_state[NUM_KEYS];  // Key state
     FILE *game;
-
+    clock_t clock;
     unsigned short status_flag;
     double cycle_counter;
     unsigned short current_opcode;

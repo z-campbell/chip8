@@ -385,10 +385,8 @@ void opDecrimentXY ( Chip8 *chip8 ) {
         return;
 
     }
-    else
-        chip8->V[0xF] = 1;
+    chip8->V[0xF] = 1;
     chip8->V[(chip8->current_opcode&0x0F00)>>8] = (vx - vy) & 0xFF;
-
 }
 /******************************************************************************
  *
@@ -407,55 +405,75 @@ void opBitShiftRight (Chip8 *chip8) {
  *
  ******************************************************************************/
 void opSubXY (Chip8 *chip8) {
-    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)];
-    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)];
+    unsigned char vx = chip8->V[(chip8->current_opcode & 0x0F00)>>8];
+    unsigned char vy = chip8->V[(chip8->current_opcode & 0x00F0)>>4];
 
     if ((vy - vx) < 1){
-        chip8->V[0xF] = 1;
-        chip8->V[chip8->current_opcode&0x0F00] = -(vy - vx) & 0xFF;
+        chip8->V[0xF] = 0;
+        chip8->V[(chip8->current_opcode&0x0F00)>>8] = -(vy - vx) & 0xFF;
         return;
-
     }
+    chip8->V[0xf] = 1;
     chip8->V[chip8->current_opcode&0x0F00] = (vy - vx) & 0xFF;
-
 }
-
+/******************************************************************************
+ *
+ * 0x8XYE
+ * Sets Vx = Vy << 1. sets Vf to MSB of Vy
+ *
+ ******************************************************************************/
 void opBitShiftLeft (Chip8 *chip8) {
-    chip8->V[0xf] = chip8->current_opcode & 0x01
-    chip8->V[(chip8->current_opcode&0x0F00)] = (chip8->V[(chip8->current_opcode&0x00F0)] << 1) & 0xFF;
+    chip8->V[0xf] = chip8->current_opcode & 0xF;
+    chip8->V[(chip8->current_opcode&0x0F00)>>8] = (chip8->V[(chip8->current_opcode&0x00F0)>>4] << 1) & 0xFF;
 }
-
+/******************************************************************************
+ *
+ * 0x9Y0
+ * Skips block of code if Vx == Vy
+ *
+ ******************************************************************************/
 void opSkipIfEqXY(Chip8 *chip8) {
     if (chip8->V[(chip8->current_opcode & 0x0F00)] != chip8->V[chip8->current_opcode &0x00F0]) {
         chip8->PC+=2;
     }
 }
-
+/******************************************************************************
+ *
+ * 0xANNN
+ * Sets I to memory address NNNN
+ *
+ ******************************************************************************/
 void opSetAddress ( Chip8 *chip8 ) {
-    chip8->PC = (chip8->current_opcode & 0x0FFF);
+    chip8->I = (chip8->current_opcode & 0x0FFF);
 }
 
-/*
- * PC = NNN + V0;
- */
+/******************************************************************************
+ *
+ * 0xBNNN
+ * Sets PC = V0 + NNN
+ *
+ ******************************************************************************/
 void opSetPCV0 (Chip8 *chip8) {
     chip8->PC = (chip8->current_opcode&0x0FFF) + chip8->V[0];
 }
-/*
+/******************************************************************************
+ *
  * 0xCXNN
- * V[X] = NN & rand(0:255)
- */
+ * Sets Vx = NN & rand(0:255). Uses rand function from stdlib that is seeded
+ * with the current time.
+ *
+ ******************************************************************************/
 void opRandAnd ( Chip8 *chip8 ) {
     srand(time(NULL));
     int random_number = rand() & 0xff;
     chip8->V[(chip8->current_opcode & 0x0F00)>>8] = (chip8->current_opcode & 0x00FF) & random_number;
 }
-/*
+/******************************************************************************
  * 0xDXYN
  * Draws a sprite at coordinate (Vx, Vy) that has a width of 8 pixels and a height of N pixels.
  * Pixels are bit encoded starting at memory address I. I is not adjusted after operation and V[f]
  * is set if a pixel is set from 1 to 0
- */
+ ******************************************************************************/
 void opDraw ( Chip8 *chip8 ) {
     unsigned char num_rows, bit_pixel, x, y;
     num_rows = chip8->current_opcode & 0x000F;
@@ -479,11 +497,60 @@ void opDraw ( Chip8 *chip8 ) {
 
 }
 
+/******************************************************************************
+ *
+ * 0xEX9E
+ * Skips next instruction set if key[Vx] == pressed
+ *
+ ******************************************************************************/
 void opSkipIfPressed (Chip8 *chip8) {
-
+    if( chip8->key_state[(chip8->current_opcode&0x0F00)>>8] == 1){
+        chip8->PC +=2;
+    }
 }
 
+/******************************************************************************
+ *
+ * 0xEXA1
+ * Skips next instruction if key_state[Vx] != pressed
+ *
+ ******************************************************************************/
+void opSkipIfnPressed (Chip8 *chip8) {
+    if( chip8->key_state[(chip8->current_opcode&0x0F00)>>8] != 1){
+        chip8->PC +=2;
+    }
+}
 
+/******************************************************************************
+ *
+ * 0xFX07
+ * sets Vx to value of delay timer
+ *
+ ******************************************************************************/
+void opSetVTimer(Chip8 *chip8) {
+    chip8->V[(chip8->current_opcode & 0x0F00)>>8] = (chip8->delay_timer) & 0xff;
+}
+
+/******************************************************************************
+ *
+ * 0xFX0A
+ * Waits for key press specified by Vx. This is a blocking operation. All
+ * Instructions are halted.
+ *
+ ******************************************************************************/
+void opWaitForKey(Chip8 *chip8) {
+    unsigned char key_val = (chip8->current_opcode & 0x0F00) >> 8;
+    while(chip8->key_state[key_val] != 1);
+}
+/******************************************************************************
+ *
+ * 0xFX15
+ * Sets delay timer to Vx
+ *
+ ******************************************************************************/
+void opSetDelayTimer (Chip8 *chip8) {
+    chip8->delay_timer = (chip8->V[(chip8->current_opcode & 0x0F00)>>8]);
+}
 
 
 const opcode CHIP8_OPCODES[MAX_OPCODES] = {

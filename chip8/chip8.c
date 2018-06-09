@@ -9,12 +9,13 @@
 #include "chip8.h"
 #include "opcodes.h"
 
-const clock_t emu_start = clock();
+
 
 
 void initializeChip8( Chip8 *chip8, FILE *game ) {
 
     // Set all timers, PC, SP, and other data to default values
+    chip8->clock = clock();
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
     chip8->I = 0;
@@ -48,7 +49,7 @@ void initializeChip8( Chip8 *chip8, FILE *game ) {
         // Assume that the game is loaded contiguosly into memory
         i = 0;
         unsigned char *ptr = 0;
-        while ( i < MAX_GAME_SIZE && *ptr != EOF) {
+        while ( i < MAX_GAME_SIZE && (*ptr != EOF)) {
 
             fscanf(game, "%c", ptr);
             chip8->memory[GAME_START + i] = *ptr;
@@ -83,9 +84,9 @@ void emulateCycle (Chip8 *chip8) {
     chip8->PC += 2;
     current = clock();
 
-    if (current - emu_start > 1/60) {
+    if (current - (chip8->clock) > 1/60) {
         updateTimers(chip8);
-        emu_start = clock();
+        chip8->clock = clock();
     }
 }
 
