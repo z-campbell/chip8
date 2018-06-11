@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "chip8.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 Chip8 myChip8;
 
