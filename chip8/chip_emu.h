@@ -4,10 +4,10 @@
 
 #ifndef CHIP8_CHIP_EMU_H
 #define CHIP8_CHIP_EMU_H
-#ifdef __MACH__
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
-#endif
+
 
 // Emulator cycle is at 1000 Hz or 1 ms
 #define EMU_CYCLE 1
@@ -29,6 +29,9 @@
 #define KEY_E SDLK_f
 #define KEY_F SDLK_v
 
+extern SDL_Event event;
 
-
+void updateScreen(void);
+void initSound(void);
+void clearKeys(Chip8 *chip8);
 #endif //CHIP8_CHIP_EMU_H

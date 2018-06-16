@@ -10,8 +10,9 @@
 #define chip8_h
 
 #include <stdio.h>
-
+#include <time.h>
 #define MEMORY_SIZE 4096
+#define FONT_MEM_START 0x000
 #define NUM_REGISTERS 16
 #define SCREEN_RESOLUTION 64*32
 #define STACK_SIZE 16
@@ -20,13 +21,17 @@
 #define MAX_GAME_SIZE (0x0EA0 - 0x0200)
 #define GAME_START 0x0200
 #define MAX_GAME_ADDR 0x0EA0
-#define DEFAULT_GAME "pong.ROM"
+#define DEFAULT_GAME "c8games/BLINKY"
 
 enum {
     STACK_UNDERFLOW,
     STACK_OVERFLOW,
     DRAW_FLAG,
 
+};
+enum {
+    HALT,
+    RUN
 };
 
 typedef struct Chip8 {
@@ -47,10 +52,12 @@ typedef struct Chip8 {
     double cycle_counter;
     unsigned short current_opcode;
     unsigned char draw_flag;
+    unsigned char cpu_state;
 
 
 } Chip8;
 
+extern unsigned char chip8_fontset[80];
 void  *function_ptr (void);
 void loadGame(FILE *file);
 void initializeChip8(Chip8 *chip8, FILE *game);
