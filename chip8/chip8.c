@@ -57,8 +57,6 @@ void initializeChip8( Chip8 *chip8, FILE *game ) {
     }
 
 
-
-
 }
 
 void emulateCycle (Chip8 *chip8) {
