@@ -6,6 +6,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework SDL2") # compiler version and
 set(SOURCE_FILES
         chip8.c
         chip8.h
-        main.c opcodes.c opcodes.h opcode_functions.c opcode_functions.h globals.h)
+        chip_emu.c opcodes.c opcodes.h chip_emu.h)
 
 add_executable(chip8 ${SOURCE_FILES})

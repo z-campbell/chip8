@@ -15,7 +15,7 @@
 void initializeChip8( Chip8 *chip8, FILE *game ) {
 
     // Set all timers, PC, SP, and other data to default values
-    chip8->clock = clock();
+
     chip8->delay_timer = 0;
     chip8->sound_timer = 0;
     chip8->I = 0;

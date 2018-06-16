@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "opcodes.h"
-#include "opcode_functions.h"
+
 #include "opcodes.h"
 #include "chip8.h"
 
